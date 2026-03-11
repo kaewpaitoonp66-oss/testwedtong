@@ -264,34 +264,52 @@ async function writeLED(val) {
     val ? ind.classList.add("on") : ind.classList.remove("on");
   } catch (err) { console.error(err); }
 }
+// ✅ เพิ่มฟังก์ชันนี้ — reset ค่าทั้งหมดกลับเป็น --
+function resetVitals() {
+  // Heart Rate
+  hrValueEl.textContent = "--";
+  hrTimeEl.textContent  = "--";
 
-// ✅ แก้ไขแล้ว
+  // SpO2
+  spo2ValueEl.textContent = "--";
+  spo2TimeEl.textContent  = "--";
+
+  // Temperature — reset ตัวเลข, หลอด, badge, เวลา
+  document.getElementById("thermoNum").textContent    = "--";
+  document.getElementById("thermoFill").style.height  = "0%";
+  document.getElementById("tempTime").textContent     = "--";
+
+  const status = document.getElementById("thermoStatus");
+  status.className   = "thermo-badge badge-na";
+  status.textContent = "-- N/A";
+
+  const bulb = document.getElementById("thermoBulb");
+  bulb.style.background = "radial-gradient(circle at 35% 30%,#ffe060,#ff6a00)";
+  bulb.style.boxShadow  = "0 0 16px rgba(255,140,0,.8),0 0 30px rgba(255,140,0,.3)";
+}
+// ✅ เรียก resetVitals() ในทั้งสองจุด
 function disconnectBLE() {
   if (bleDevice) {
     try {
-      if (bleDevice.gatt.connected) {
-        bleDevice.gatt.disconnect();  // สั่ง disconnect
-      }
+      if (bleDevice.gatt.connected) bleDevice.gatt.disconnect();
     } catch (err) {
       console.error("Disconnect error:", err);
     }
   }
-  // ✅ บังคับ reset UI และ state ทันที ไม่รอ event
-  bleDevice  = null;
-  bleServer  = null;
-  bleService = null;
+  bleDevice = null; bleServer = null; bleService = null;
   setStatus(false);
+  resetVitals();   // ✅ ล้างค่าบนหน้าจอ
 }
 
 function onDisconnected() {
-  // ✅ เช็คก่อนว่ายังไม่ได้ reset ไปแล้ว (จากการกดปุ่ม)
   if (bleDevice) {
-    bleDevice  = null;
-    bleServer  = null;
-    bleService = null;
+    bleDevice = null; bleServer = null; bleService = null;
   }
   setStatus(false);
-}/* ===== SAVE RECORD ===== */
+  resetVitals();   // ✅ ล้างค่าบนหน้าจอ
+}
+
+/* ===== SAVE RECORD ===== */
 function saveRecord() {
   const hr   = hrValueEl.textContent;
   const spo2 = spo2ValueEl.textContent;
