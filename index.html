@@ -265,13 +265,33 @@ async function writeLED(val) {
   } catch (err) { console.error(err); }
 }
 
-/* ===== DISCONNECT ===== */
+// ✅ แก้ไขแล้ว
 function disconnectBLE() {
-  if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect();
+  if (bleDevice) {
+    try {
+      if (bleDevice.gatt.connected) {
+        bleDevice.gatt.disconnect();  // สั่ง disconnect
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err);
+    }
+  }
+  // ✅ บังคับ reset UI และ state ทันที ไม่รอ event
+  bleDevice  = null;
+  bleServer  = null;
+  bleService = null;
+  setStatus(false);
 }
-function onDisconnected() { setStatus(false); bleService = null; }
 
-/* ===== SAVE RECORD ===== */
+function onDisconnected() {
+  // ✅ เช็คก่อนว่ายังไม่ได้ reset ไปแล้ว (จากการกดปุ่ม)
+  if (bleDevice) {
+    bleDevice  = null;
+    bleServer  = null;
+    bleService = null;
+  }
+  setStatus(false);
+}/* ===== SAVE RECORD ===== */
 function saveRecord() {
   const hr   = hrValueEl.textContent;
   const spo2 = spo2ValueEl.textContent;
